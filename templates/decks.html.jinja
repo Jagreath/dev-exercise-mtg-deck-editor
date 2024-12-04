@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Decks</title>
+        <script>
+        </script>
+        <link href="{{ url_for('static', filename='bootstrap-5.3.3/css/bootstrap.css') }}" rel="stylesheet" />
+    </head>
+    <body>
+        <div class="container">
+            <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+                <span class="col-12 col-lg-auto mb-2 justify-content-center mb-md-0 fs-3">Deck Organizer</span>
+                <div class="col-lg-3 text-end">
+                    <a href="{{ url_for('new_deck') }}"><button class="btn btn-primary">New</button></a>
+                </div>
+            </header>
+            <div class="container">
+                <span class="fs-5">Decks</span>
+                <table id="decks" class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Format</th>
+                            <th>Colors</th>
+                            <th>Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if decks: %}
+                        {% for deck in decks %}
+                        <tr>
+                            <td><a href="{{ url_for('deck', id=deck.id) }}">{{ deck.name }}</a></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{ deck.changed.date() }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="4">No Decks</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
