@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Decks</title>
+        <script>
+        </script>
+        <link href="{{ url_for('static', filename='bootstrap-5.3.3/css/bootstrap.css') }}" rel="stylesheet" />
+    </head>
+    <body>
+        <header class="border-bottom pt-2 pb-2">
+            <div class="container">
+                <div class="d-flex flex-wrap align-items-center justify-content-center">
+                    <h3 class="m-0 align-self-start">Deck Organizer</h3>
+                    <ul class="nav col align-self-start">
+                        <li>    
+                            <a class="nav-link px-2 link-secondary" href="{{ url_for("decks") }}">Decks</a>
+                        </li>
+                    </ul>
+                    <div class="text-end">
+                        <a href="{{ url_for('new_deck') }}"><button class="btn btn-primary">New</button></a>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div class="container pt-5">
+            <div class="row">
+                <h2 class="col">Decks</h2>
+            </div>
+            <div class="row">
+                <table id="decks" class="table table-striped-columns">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Format</th>
+                            <th>Colors</th>
+                            <th>Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if decks: %}
+                        {% for deck in decks %}
+                        <tr>
+                            <td><a href="{{ url_for('deck', uuid=deck.uuid) }}">{{ deck.name }}</a></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="4">No Decks</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

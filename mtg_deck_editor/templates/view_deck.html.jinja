@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ deck.name }}</title>
+        <script>
+        </script>
+        <link href="{{ url_for('static', filename='bootstrap-5.3.3/css/bootstrap.css') }}" rel="stylesheet" />
+    </head>
+    <body>
+        <header class="border-bottom pt-2 pb-2">
+            <div class="container">
+                <div class="d-flex flex-wrap align-items-center justify-content-center">
+                    <h3 class="m-0 align-self-start">Deck Organizer</h3>
+                    <ul class="nav col align-self-start">
+                        <li>    
+                            <a class="nav-link px-2 link-secondary" href="{{ url_for("decks") }}">Decks</a>
+                        </li>
+                    </ul>
+                    <div class="text-end">
+                        <a href="{{ url_for('delete_deck', uuid=deck.uuid) }}"><button class="btn btn-secondary">Delete</button></a>
+                        <a href="{{ url_for('edit_deck', uuid=deck.uuid) }}"><button class="btn btn-primary">Edit</button></a>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div class="container pt-5">
+            <div class="row">
+                <h3>{{ deck.name }}</h3>
+                <p>{{ deck.description }}</p>
+                <section id="cards">
+                    {% for card in cards %}
+                    <span>{{ card.quantity }}</span>&nbsp;<span>{{ card.name }}</span><br/>
+                    {% endfor %}
+                </section>
+            </div>
+        </div>
+    </body>
+</html>

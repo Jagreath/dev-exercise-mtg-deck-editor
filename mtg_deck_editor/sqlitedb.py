@@ -2,7 +2,7 @@ from datetime import datetime
 import sqlite3 as sql
 
 from mtg_deck_editor.config import APP_CONFIG
-from .models import (
+from .old_models import (
     Deck, 
     DeckCard, 
     AtomicCard

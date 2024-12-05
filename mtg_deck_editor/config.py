@@ -1,13 +1,19 @@
 import os
-BASE_DIR = os.path.abspath(os.getcwd())
+basedir = os.path.abspath(os.path.dirname(__file__))
 
-class Config(object):
-    ATOMIC_CONNECTION = ''
-    DECKS_CONNECTION = ''
+class Config:
+    SQLALCHEMY_DATABASE_URI = ""
+    SQLALCHEMY_BINDS =  {
+        "SETS": "",
+        "DECKS": ""
+    }
 
 class DevConfig(Config):
-    ATOMIC_CONNECTION = os.path.join(BASE_DIR, "sqlite/AllPrintings.sqlite")
-    DECKS_CONNECTION = os.path.join(BASE_DIR, "sqlite/decks.sqlite")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "sqlite\\decks.sqlite")
+    SQLALCHEMY_BINDS =  {
+        "SETS": "sqlite:///" + os.path.join(basedir, "sqlite\\AllPrintings.sqlite"),
+        "DECKS": "sqlite:///" + os.path.join(basedir, "sqlite\\decks.sqlite")
+    }
 
 _ENV_CONFIGS = {
     'dev': DevConfig,
