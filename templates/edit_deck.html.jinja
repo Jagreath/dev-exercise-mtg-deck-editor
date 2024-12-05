@@ -8,21 +8,26 @@
     </head>
     <body>
         <form action="{{ url_for('save_deck', id=deck.id) }}" method="POST">
-            <div class="container">
-                <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
-                    <ul class="nav col-12 col-lg-auto mb-2 justify-content-center mb-md-0">
-                        <li>    
-                            <a class="nav-link px-2 link-secondary" href="{{ url_for("decks") }}">Decks</a>
-                        </li>
-                        <li>
-                            <a class="nav-link px-2 link-secondary" href="{{ url_for('deck', id=deck.id) }}">Back</a>
-                        </li>
-                    </ul>
-                    <div class="col-lg-3 text-end">
-                        <button class="btn btn-primary">Save</button>
-                    </div>
-                </header>
+            <header class="border-bottom pt-2 pb-2">
                 <div class="container">
+                    <div class="d-flex flex-wrap align-items-center justify-content-center">
+                        <h3 class="m-0 align-self-start">Deck Organizer</h3>
+                        <ul class="nav col align-self-start">
+                            <li>    
+                                <a class="nav-link px-2 link-secondary" href="{{ url_for("decks") }}">Decks</a>
+                            </li>
+                            <li>
+                                <a class="nav-link px-2 link-secondary" href="{{ url_for('deck', id=deck.id) }}">Back</a>
+                            </li>
+                        </ul>
+                        <div class="text-end">
+                            <button class="btn btn-primary">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <div class="container pt-5">
+                <div class="row">
                     <label for="name" class="form-label">Name</label>
                     <input type="text" name="name" class="form-control" value="{{ deck.name}}" />
                     <label for="description" class="form-label">Description</label>
