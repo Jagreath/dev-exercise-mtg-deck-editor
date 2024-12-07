@@ -7,17 +7,17 @@
         <link href="{{ url_for('static', filename='bootstrap-5.3.3/css/bootstrap.css') }}" rel="stylesheet" />
     </head>
     <body>
-        <form action="{{ url_for('save_deck', uuid=deck.uuid) }}" method="POST">
+        <form action="{{ url_for('decks.save_deck', uuid=deck.uuid) }}" method="POST">
             <header class="border-bottom pt-2 pb-2">
                 <div class="container">
                     <div class="d-flex flex-wrap align-items-center justify-content-center">
                         <h3 class="m-0 align-self-start">Deck Organizer</h3>
                         <ul class="nav col align-self-start">
                             <li>    
-                                <a class="nav-link px-2 link-secondary" href="{{ url_for("decks") }}">Decks</a>
+                                <a class="nav-link px-2 link-secondary" href="{{ url_for("decks.decks") }}">Decks</a>
                             </li>
                             <li>
-                                <a class="nav-link px-2 link-secondary" href="{{ url_for('deck', uuid=deck.uuid) }}">Back</a>
+                                <a class="nav-link px-2 link-secondary" href="{{ url_for('decks.deck', uuid=deck.uuid) }}">Back</a>
                             </li>
                         </ul>
                         <div class="text-end">

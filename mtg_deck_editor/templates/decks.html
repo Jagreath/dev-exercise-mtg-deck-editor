@@ -15,11 +15,11 @@
                     <h3 class="m-0 align-self-start">Deck Organizer</h3>
                     <ul class="nav col align-self-start">
                         <li>    
-                            <a class="nav-link px-2 link-secondary" href="{{ url_for("decks") }}">Decks</a>
+                            <a class="nav-link px-2 link-secondary" href="{{ url_for("decks.decks") }}">Decks</a>
                         </li>
                     </ul>
                     <div class="text-end">
-                        <a href="{{ url_for('new_deck') }}"><button class="btn btn-primary">New</button></a>
+                        <a href="{{ url_for('decks.new_deck') }}"><button class="btn btn-primary">New</button></a>
                     </div>
                 </div>
             </div>
@@ -42,7 +42,7 @@
                         {% if decks: %}
                         {% for deck in decks %}
                         <tr>
-                            <td><a href="{{ url_for('deck', uuid=deck.uuid) }}">{{ deck.name }}</a></td>
+                            <td><a href="{{ url_for('decks.deck', uuid=deck.uuid) }}">{{ deck.name }}</a></td>
                             <td></td>
                             <td></td>
                             <td></td>
