@@ -33,7 +33,7 @@
                     <label for="description" class="form-label">Description</label>
                     <textarea class="form-control" name="description" rows="3">{{ deck.description }}</textarea>
                     <label for="cards" class="form-label">Cards</label>
-                    <textarea class="form-control" name="cards" rows="20">{% for card in cards %}{{card.quantity}} {{card.name}} ({{card.set_code}}) {{card.collector_number}}&#013;{% endfor %}</textarea>
+                    <textarea class="form-control" name="cards" rows="20">{% for card in deck.cards %}{{card.quantity}} {{card.name}} ({{card.set_code}}) {{card.collector_number}}&#013;{% endfor %}</textarea>
                 </div>
             </div>
         </form>

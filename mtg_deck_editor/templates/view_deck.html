@@ -30,7 +30,7 @@
                 <h3>{{ deck.name }}</h3>
                 <p>{{ deck.description }}</p>
                 <section id="cards">
-                    {% for card in cards %}
+                    {% for card in deck.cards %}
                     <span>{{ card.quantity }}</span>&nbsp;<span>{{ card.name }}</span><br/>
                     {% endfor %}
                 </section>

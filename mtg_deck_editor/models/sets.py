@@ -1,9 +1,7 @@
-import sqlalchemy as sa
 import sqlalchemy.orm as sao
-from .. import db
+from mtg_deck_editor import db
 
 class Set(db.Model):
-    __bind_key__ = "SETS"
     __tablename__ = "sets"
     code: sao.Mapped[str] = sao.mapped_column(primary_key=True, nullable=False)
     name: sao.Mapped[str] = sao.mapped_column(nullable=False)
@@ -16,8 +14,7 @@ class Set(db.Model):
         return f'<Set {self.name!r}>'
 
 class SetCard(db.Model):
-    __bind_key__ = "SETS"
-    __tablename__ = "cards"
+    __tablename__ = "setcards"
     uuid: sao.Mapped[str] = sao.mapped_column(primary_key=True, nullable=False)
     name: sao.Mapped[str] = sao.mapped_column(nullable=False)
     asciiName: sao.Mapped[str] = sao.mapped_column(nullable=True)
@@ -106,4 +103,3 @@ class SetCard(db.Model):
 
     def __repr__(self):
         return f'<SetCard {self.name!r}>'
-    
