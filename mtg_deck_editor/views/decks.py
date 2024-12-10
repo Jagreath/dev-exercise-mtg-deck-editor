@@ -31,23 +31,22 @@ def new_deck():
 @bp.route("/decks/<uuid>")
 def deck(uuid: str):
     deck = db.get_or_404(Deck, uuid)
-    cards = db.session.execute(deck.cards.select()).scalars()
-    return render_template("view_deck.html", deck=deck, cards=cards)
+    # cards = db.session.execute(deck.cards.select()).scalars()
+    return render_template("view_deck.html", deck=deck, cards=deck.cards)
 
 @bp.route("/decks/<uuid>/edit")
 def edit_deck(uuid: str):
     deck = db.get_or_404(Deck, uuid)
-    cards = db.session.execute(deck.cards.select()).scalars()
-    return render_template("edit_deck.html", deck=deck, cards=cards)
+    # cards = db.session.execute(deck.cards.select()).scalars()
+    return render_template("edit_deck.html", deck=deck, cards=deck.cards)
 
 @bp.post("/decks/<uuid>/save")
 def save_deck(uuid: str):
     deck = db.get_or_404(Deck, uuid)
-    db.session.add(deck)
+
     deck.name = request.form.get("name")
     deck.description = request.form.get("description")    
-    #TODO update cards
-    # deck.cards = parse_moxfield_decklist(request.form.get("cards"))
+    deck.cards = parse_moxfield_decklist(request.form.get("cards"))
 
     db.session.commit()
     return redirect(url_for("decks.deck", uuid=uuid))
@@ -72,7 +71,7 @@ def parse_moxfield_decklist(decklist: str) -> list[Card]:
     """
     cards = []
     if decklist is not None:
-        
+        uuids = set()
         for row in decklist.strip().splitlines():
             match = _moxfield_decklist_pattern.match(row)
             if match:
@@ -87,7 +86,8 @@ def parse_moxfield_decklist(decklist: str) -> list[Card]:
                     params["number"] = match.group("collector_number").strip().upper()
 
                 set_card = db.session.execute(db.select(SetCard).filter_by(**params)).scalar()
-                if set_card:
+                if set_card is not None and set_card.uuid not in uuids:
+                    uuids.add(set_card.uuid)
                     card = Card()
                     card.uuid = set_card.uuid
                     card.name = set_card.name
