@@ -3,6 +3,7 @@ from uuid import uuid4
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 from mtg_deck_editor import db
+from mtg_deck_editor.services.scryfall import ScryfallCard
 
 class Deck(db.Model):
     uuid: sao.Mapped[str] = sao.mapped_column(primary_key=True, nullable=False)
@@ -18,7 +19,30 @@ class Deck(db.Model):
 
     def __repr__(self):
         return f'<Deck {self.name!r}>'
-        
+    
+    @staticmethod
+    def get(uuid: str):
+        return db.get_or_404(Deck, uuid)
+
+    @staticmethod
+    def get_all():
+        return db.session.execute(db.select(Deck).order_by(Deck.name)).scalars()
+    
+    @staticmethod
+    def new():
+        deck = Deck()
+        db.session.add(deck)
+        return deck
+
+    def add_card(self, card: "Card"):
+        if card.uuid not in [c.uuid for c in self.cards]:
+            self.cards.append(card)
+
+    def delete(self):
+        db.session.delete(self)
+
+    def save(self):
+        db.session.commit()
 
 class Card(db.Model):
     uuid: sao.Mapped[str] = sao.mapped_column(primary_key=True, index=True)
@@ -35,6 +59,15 @@ class Card(db.Model):
 
     def __repr__(self):
         return f'<Card {self.uuid!r} ({self.name} - {self.deck_uuid})>'
+    
+    def copy_scryfall_card(self, s_card: ScryfallCard):
+        self.uuid = s_card.id
+        self.name = s_card.name
+        self.set_code = s_card.set
+        self.collector_number = s_card.collector_number
+        self.mana_cost = s_card.mana_cost
+        self.mana_value = s_card.cmc
+
     
 class Tag(db.Model):
     name: sao.Mapped[str] = sao.mapped_column(primary_key=True, index=True)

@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from .config import APP_CONFIG
+from mtg_deck_editor.config import APP_CONFIG
 
 db = SQLAlchemy()
 

@@ -6,77 +6,65 @@ from flask import (
     request,
     Blueprint
 )
-from .. import db
-from ..models.decks import Deck
-from ..models.sets import SetCard
-from ..parsing.moxfield import MoxfieldParser
+from mtg_deck_editor.models.decks import (Deck, Card)
+from mtg_deck_editor.parsing.cards import (MoxfieldParser)
+from mtg_deck_editor.services.scryfall import ScryfallApi
 
 bp = Blueprint('decks', __name__)
 
 @bp.route("/decks")
 def decks():
-    decks = db.session.execute(db.select(Deck).order_by(Deck.name)).scalars()
-    return render_template("decks.html", decks=decks)
+    return render_template("decks.html", decks=Deck.get_all())
 
 @bp.route("/decks/new")
 def new_deck():
-    deck = Deck(
-        name="Placeholder Name for a Deck",
-        description="lorem ipsum, things of that nature")
-    db.session.add(deck)
-    db.session.commit()
+    deck = Deck.new()
+    deck.save()
     return redirect(url_for("decks.edit_deck", uuid=deck.uuid))
 
 @bp.route("/decks/<uuid>")
 def deck(uuid: str):
-    deck = db.get_or_404(Deck, uuid)
-    return render_template("view_deck.html", deck=deck)
+    return render_template("view_deck.html", deck=Deck.get(uuid))
 
 @bp.route("/decks/<uuid>/edit")
 def edit_deck(uuid: str):
-    deck = db.get_or_404(Deck, uuid)
-    return render_template("edit_deck.html", deck=deck)
+    return render_template("edit_deck.html", deck=Deck.get(uuid))
 
 @bp.post("/decks/<uuid>/save")
-def save_deck(uuid: str, cardParser = MoxfieldParser):
-    deck = db.get_or_404(Deck, uuid)
-
+def save_deck(uuid: str):
+    # TODO: form validation
     if "name" not in request.form \
         or "description" not in request.form \
         or "cards" not in request.form:
-            abort(400)
+            abort(400, "Missing")
 
+
+    deck = Deck.get(uuid)
     deck.name = request.form.get("name")
     deck.description = request.form.get("description")    
+    
     deck.cards.clear()
-
-    cards = cardParser().parse_lines(request.form.get("cards"))
-    card_uuids = set()
-    for card in cards:
+    for card_string in request.form.get("cards").strip().splitlines():
+        card = MoxfieldParser().parse_string(card_string)
         set_card = None
-        if card.set_code and card.collector_number:
-            set_card = db.session.execute(db.select(SetCard) \
-                                          .where(SetCard.setCode == card.set_code \
-                                                 and SetCard.number == card.collector_number)).scalar()
-        elif card.name:
-            set_card = db.session.execute(db.select(SetCard) \
-                                          .where(SetCard.name == card.name)).scalar()
-        if set_card is not None and set_card.uuid not in card_uuids:
-            card_uuids.add(set_card.uuid)
-            card.uuid = set_card.uuid
-            card.name = set_card.name
-            card.set_code = set_card.setCode
-            card.collector_number = set_card.number
-            card.mana_cost = set_card.manaCost
-            card.mana_value = set_card.manaValue
-            deck.cards.append(card)
 
-    db.session.commit()
+        if card.set_code and card.collector_number:
+            set_card = ScryfallApi().get_card(card.set_code, card.collector_number)
+        elif card.name:
+            pass
+            # cards = ScryfallApi().search_cards(card.name)
+            # if len(cards) > 0:
+            #     set_card = cards[0]
+        if set_card is not None:
+            card.copy_scryfall_card(set_card)
+            deck.add_card(card)
+
+    deck.save()
     return redirect(url_for("decks.deck", uuid=uuid))
 
 @bp.route("/decks/<uuid>/delete")
 def delete_deck(uuid: str):
-    deck = db.get_or_404(Deck, uuid)
-    db.session.delete(deck)
-    db.session.commit()
+    deck = Deck.get(uuid)
+    deck.delete()
+    deck.save()
     return redirect(url_for("decks.decks"))

@@ -31,7 +31,7 @@
                 <p>{{ deck.description }}</p>
                 <section id="cards">
                     {% for card in deck.cards %}
-                    <span>{{ card.quantity }}</span>&nbsp;<span>{{ card.name }}</span><br/>
+                    <span>{{ card.quantity }}</span>&nbsp;<span>{{ card.name }}</span>&nbsp;<span>{{ card.mana_cost }}</span><br/>
                     {% endfor %}
                 </section>
             </div>

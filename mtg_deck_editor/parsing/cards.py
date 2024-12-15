@@ -1,21 +1,23 @@
-from ..models.decks import Card
-
 from re import compile as re_compile
+from mtg_deck_editor.models.decks import Card
+
 _moxfield_decklist_pattern = re_compile(r"(\s*(?P<quant>\d+)\s*)?(?P<name>[\d\w\s\-\,\'\/]+)(\((?P<set>[\d\w]{3,4})\)\s*)?((?P<num>[\d\w\-★]{1,7})\s*)?.*")
 
-class MoxfieldParser:
+class CardParser:
+    def parse_string(self, string: str) -> Card:
+        return None
 
-    def parse_string(self, moxfield_str: str) -> Card:
+class MoxfieldParser(CardParser):
+    def parse_string(self, string: str) -> Card:
         """
         Parse a string into components that match a moxfield pattern:
-        "{QUANT_COL} {NAME_COL} ({SET_COL}) {QUANT_COL}"
+        "quant name (set) num"
 
         The set and number components are optional.
 
-        Returns a dictionary containing as many keys as were found in the string:
-        {NAME_COL}, {SET_COL}, {NUM_COL}
+        Returns a dictionary containing as many keys as were found in the string.
         """
-        match = _moxfield_decklist_pattern.match(moxfield_str)
+        match = _moxfield_decklist_pattern.match(string)
         if match and match.group("name"):
             card = Card()
             card.name = match.group("name").title().strip()
@@ -26,10 +28,3 @@ class MoxfieldParser:
                 card.collector_number = match.group("num").upper()
             return card
         return None
-    
-    def parse_lines(self, moxfield_lines: str) -> list[Card]:
-        cards = []
-        if moxfield_lines:
-            for line in moxfield_lines.strip().splitlines():
-                cards.append(self.parse_string(line))
-        return cards
