@@ -3,7 +3,7 @@ from uuid import uuid4
 import sqlalchemy as sa
 import sqlalchemy.orm as sao
 from mtg_deck_editor import db
-from mtg_deck_editor.services.scryfall import ScryfallCard
+from mtg_deck_editor.services.scryfall import GetCardCached
 
 class Deck(db.Model):
     uuid: sao.Mapped[str] = sao.mapped_column(primary_key=True, nullable=False)
@@ -60,10 +60,10 @@ class Card(db.Model):
     def __repr__(self):
         return f'<Card {self.uuid!r} ({self.name} - {self.deck_uuid})>'
     
-    def copy_scryfall_card(self, s_card: ScryfallCard):
+    def copy_scryfall_card(self, s_card: GetCardCached):
         self.uuid = s_card.id
         self.name = s_card.name
-        self.set_code = s_card.set
+        self.set_code = s_card.set.upper()
         self.collector_number = s_card.collector_number
         self.mana_cost = s_card.mana_cost
         self.mana_value = s_card.cmc
