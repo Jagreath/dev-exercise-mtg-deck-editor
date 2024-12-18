@@ -46,17 +46,16 @@ def save_deck(uuid: str):
     deck.cards.clear()
     for card_string in request.form.get("cards").strip().splitlines():
         card = MoxfieldParser().parse_string(card_string)
-        set_card = None
+        scryfall_card = None
 
         if card.set_code and card.collector_number:
-            set_card = ScryfallApi().get_card(card.set_code, card.collector_number)
+            scryfall_card = ScryfallApi().get_card(card.set_code, card.collector_number)
         elif card.name:
-            pass
-            # cards = ScryfallApi().search_cards(card.name)
-            # if len(cards) > 0:
-            #     set_card = cards[0]
-        if set_card is not None:
-            card.copy_scryfall_card(set_card)
+            cards = ScryfallApi().search_cards(card.name)
+            if len(cards) > 0:
+                scryfall_card = cards[0]
+        if scryfall_card is not None:
+            card.copy_scryfall_dto(scryfall_card)
             deck.add_card(card)
 
     deck.save()

@@ -1,9 +1,8 @@
 import sqlalchemy.orm as sao
 from datetime import datetime, timedelta
 from mtg_deck_editor import db
-import time
 
-def allow(service_name, max_count = 10, duration = 1):
+def check_rate_limit(service_name, max_count = 10, duration = 1):
     with db.session.begin_nested() as st:
         rl_entry = db.session.execute(
             db.select(RateLimit)
@@ -38,38 +37,3 @@ class RateLimit(db.Model):
         self.service = service
         self.count = count
         self.limit_window = limit_window
-
-
-class ServiceCache(db.Model):
-    id : sao.Mapped[int] = sao.mapped_column(primary_key=True, autoincrement=True)
-    service: sao.Mapped[str] = sao.mapped_column(nullable=False)
-    method : sao.Mapped[str] = sao.mapped_column(nullable=False)
-    expiry : sao.Mapped[datetime] = sao.mapped_column(nullable=False)
-
-    scryfall_get_card : sao.WriteOnlyMapped["GetCardCached"] = sao.relationship(cascade="all,delete-orphan", passive_deletes=True)
-
-    def __init__(self, service: str, method : str, expiry: datetime = datetime.now()):
-        super().__init__()
-
-        self.service = service
-        self.method = method
-        self.expiry = expiry
-
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
-
-    @staticmethod
-    def get_or_default(service: str, method_name: str) -> "ServiceCache":
-        cache : ServiceCache = db.session.execute(
-            db.select(ServiceCache)
-            .where(ServiceCache.service == service)
-            .where(ServiceCache.method == method_name)).scalar()
-        if cache is not None and (datetime.now() - cache.expiry).days > 1:
-            cache.delete()
-            cache = None
-        if cache is None:
-            cache = ServiceCache(service, method_name)
-            db.session.add(cache)
-            db.session.commit()
-        return cache
