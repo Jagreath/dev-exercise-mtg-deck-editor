@@ -1,7 +1,7 @@
-import mtg_deck_editor
+from mtg_deck_editor.app import create_app, db
 
 if __name__ == "__main__":
-    app = mtg_deck_editor.create_app()
+    app = create_app()
     with app.app_context() as context:
-        mtg_deck_editor.db.drop_all()
-        mtg_deck_editor.db.create_all()
+        db.drop_all()
+        db.create_all()

@@ -1,4 +1,4 @@
-import mtg_deck_editor
+from mtg_deck_editor.app import create_app
 
 if __name__ == "__main__":
-    mtg_deck_editor.create_app().run(debug=True)
+    create_app().run(debug=True)
