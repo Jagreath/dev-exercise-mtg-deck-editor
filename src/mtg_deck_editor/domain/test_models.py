@@ -2,7 +2,7 @@ import unittest
 import unittest.mock
 from unittest.mock import MagicMock
 
-from mtg_deck_editor.domain.decks import Deck, Card
+from mtg_deck_editor.domain.models import Deck, Card
 from mtg_deck_editor.services.dtos import CardDto
 
 class TestDeck(unittest.TestCase):

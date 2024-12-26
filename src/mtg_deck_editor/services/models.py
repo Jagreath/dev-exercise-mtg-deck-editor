@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from mtg_deck_editor.services.dtos import CardDto
 
 class RateLimit:
@@ -11,7 +11,7 @@ class ScryfallCache:
     def __init__(self, method_uri: str):
         self.id = 0
         self.method_uri = method_uri
-        self.expiry = datetime.now() + timedelta(days=1)
+        self.expiry = datetime.now(timezone.utc) + timedelta(days=1)
         self.cached_cards : list[CachedCard] = []
 
 class CachedCard:
@@ -23,7 +23,7 @@ class CachedCard:
         self.set = set
         self.collector_number = collector_number
         self.cmc = cmc
-        self.cache: ScryfallCache = None
+        self.sf_cache: ScryfallCache = None
 
     def dto(self):
         dto = CardDto()

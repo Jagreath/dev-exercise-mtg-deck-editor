@@ -1,0 +1,18 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}{{ deck.name }}{% endblock %}
+
+{% block content %}
+{% include 'shared/header.html' %}
+<div class="container pt-5">
+    <div class="row">
+        <h3>{{ deck.name }}</h3>
+        <p>{{ deck.description }}</p>
+        <section id="cards">
+            {% for card in deck.cards %}
+            <span>{{ card.quantity }}</span>&nbsp;<span>{{ card.name }}</span>&nbsp;<span>{{ card.mana_cost }}</span><br/>
+            {% endfor %}
+        </section>
+    </div>
+</div>
+{% endblock %}

@@ -4,10 +4,6 @@ class BaseRateLimitRepository:
     def check_rate_limit(self, service_name, max_count = 10, duration = 1) -> bool:
         pass
 
-class RateLimitRepositoryFactory:
-    def create(self) -> BaseRateLimitRepository:
-        return None
-
 class BaseScryfallCacheRepository:
     def get_cache(self, method_uri: str) -> ScryfallCache:
         pass
@@ -23,7 +19,3 @@ class BaseScryfallCacheRepository:
     
     def cache_search_card_results(self, id, cards: list[dict]) -> list[CachedCard]:
         pass
-
-class ScryfallCacheRepositoryFactory:
-    def create(self) -> BaseScryfallCacheRepository:
-        return None

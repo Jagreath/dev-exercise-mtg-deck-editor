@@ -1,14 +1,33 @@
 from sqlalchemy import Table, Column, String, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import registry, relationship
 from sqlalchemy.schema import MetaData
-from mtg_deck_editor.domain.decks import Deck, Card
+from mtg_deck_editor.domain.models import User, Deck, Card
 from mtg_deck_editor.services.models import CachedCard, RateLimit, ScryfallCache
+
+def create_users(registry: registry):
+    users_table = Table(
+        "users",
+        registry.metadata,
+        Column("uuid", String(36), primary_key=True),
+        Column("name", String(256), nullable=False, index=True),
+        Column("hash", String(256), nullable=False),
+        Column("created", DateTime, nullable=False),
+        Column("modified", DateTime, nullable=False)
+    )
+    registry.map_imperatively(
+        User,
+        users_table,
+        properties={
+            "decks": relationship(Deck, back_populates="user", cascade="all, delete-orphan")
+        }
+    )
 
 def create_decks(registry: registry):
     decks_table = Table(
         "decks",
         registry.metadata,
         Column("uuid", String(36), primary_key=True),
+        Column("user_uuid", String(36), ForeignKey("users.uuid"), primary_key=True),
         Column("name", String(50), nullable=False),
         Column("description", String()),
         Column("created", DateTime, nullable=False),
@@ -18,6 +37,7 @@ def create_decks(registry: registry):
         Deck, 
         decks_table,
         properties={
+            "user": relationship(User, back_populates="decks"),
             "cards": relationship(Card, back_populates="deck", cascade="all, delete-orphan")
         })
     
@@ -26,7 +46,7 @@ def create_cards(registry: registry):
         "cards",
         registry.metadata,
         Column("uuid", String(36), primary_key=True),
-        Column("deck_uuid", String(36), ForeignKey("decks.uuid"), primary_key=True, index=True),
+        Column("deck_uuid", String(36), ForeignKey("decks.uuid"), primary_key=True),
         Column("quantity", Integer, nullable=False),
         Column("name", String(255), nullable=False),
         Column("set_code", String(12), nullable=False),
@@ -74,7 +94,7 @@ def create_scryfall_cache(registry: registry):
 
 def create_cached_card(registry: registry):
     cached_card_table = Table(
-        "cached_cards",
+        "scryfall_cached_cards",
         registry.metadata,
         Column("cache_id", Integer, ForeignKey("scryfall_caches.id"), primary_key=True),
         Column("id", String(36), primary_key=True),
@@ -87,13 +107,14 @@ def create_cached_card(registry: registry):
     registry.map_imperatively(
         CachedCard,
         cached_card_table,
-        properties={
-            "cache": relationship(back_populates="cached_cards")
-        }
+        # properties={
+        #     "sf_cache": relationship(back_populates="cached_cards")
+        # }
     )
 
 def create_all(metadata: MetaData):
     mapper_registry = registry(metadata=metadata)
+    create_users(mapper_registry)
     create_decks(mapper_registry)
     create_cards(mapper_registry)
     create_rate_limit(mapper_registry)
