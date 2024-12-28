@@ -3,13 +3,23 @@
 {% block title %}Deqs{% endblock %}
 
 {% block content %}
-{% include 'shared/header.html' %}
 <div class="container pt-5">
     <div class="row">
-        <h2 class="col">Deqs!</h2>
+        <div class="col text-center">
+            <h2 class="display-4 fw-bold text-body-emphasis">Deqs!</h2>
+        </div>
     </div>
-    <div class="row">
-        <p>A deck builder nobody asked for!</p>
+    <div class="row text-center">
+        <div class="col-lg-6 mx-auto">
+            <p class="lead">A deck builder nobody asked for!</p>
+        </div>
     </div>
+    {% if not g.user %}
+    <div class="row text-center">
+        <div class="col d-grid d-sm-flex justify-content-sm-center">
+            <a class="btn btn-primary btn-lg" role="button" href="{{ url_for('auth.register', next=request.path) }}">Register</a>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

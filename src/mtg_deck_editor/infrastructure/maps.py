@@ -1,6 +1,6 @@
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Table, Column, String, Integer, DateTime, ForeignKey
 from sqlalchemy.orm import registry, relationship
-from sqlalchemy.schema import MetaData
 from mtg_deck_editor.domain.models import User, Deck, Card
 from mtg_deck_editor.services.models import CachedCard, RateLimit, ScryfallCache
 
@@ -12,13 +12,14 @@ def create_users(registry: registry):
         Column("name", String(256), nullable=False, index=True),
         Column("hash", String(256), nullable=False),
         Column("created", DateTime, nullable=False),
-        Column("modified", DateTime, nullable=False)
+        Column("modified", DateTime, nullable=False),
+        Column("accessed", DateTime, nullable=False)
     )
     registry.map_imperatively(
         User,
         users_table,
         properties={
-            "decks": relationship(Deck, back_populates="user", cascade="all, delete-orphan")
+            "_decks": relationship(Deck, back_populates="user", cascade="all, delete-orphan")
         }
     )
 
@@ -27,8 +28,8 @@ def create_decks(registry: registry):
         "decks",
         registry.metadata,
         Column("uuid", String(36), primary_key=True),
-        Column("user_uuid", String(36), ForeignKey("users.uuid"), primary_key=True),
-        Column("name", String(50), nullable=False),
+        Column("user_uuid", String(36), ForeignKey("users.uuid")),
+        Column("_name", String(50), nullable=False),
         Column("description", String()),
         Column("created", DateTime, nullable=False),
         Column("modified", DateTime, nullable=False)
@@ -37,22 +38,23 @@ def create_decks(registry: registry):
         Deck, 
         decks_table,
         properties={
-            "user": relationship(User, back_populates="decks"),
-            "cards": relationship(Card, back_populates="deck", cascade="all, delete-orphan")
+            "_user": relationship(User, back_populates="_decks"),
+            "_cards": relationship(Card, back_populates="_deck", cascade="all, delete-orphan")
         })
     
 def create_cards(registry: registry):
     cards_table = Table(
         "cards",
         registry.metadata,
-        Column("uuid", String(36), primary_key=True),
         Column("deck_uuid", String(36), ForeignKey("decks.uuid"), primary_key=True),
-        Column("quantity", Integer, nullable=False),
+        Column("uuid", String(36), primary_key=True),
         Column("name", String(255), nullable=False),
+        Column("quantity", Integer, nullable=False),
         Column("set_code", String(12), nullable=False),
         Column("collector_number", String(12), nullable=False),
-        Column("mana_cost", String(32), nullable=True),
-        Column("mana_value", Integer, nullable=True),
+        Column("mana_cost", String(32)),
+        Column("mana_value", Integer),
+        Column("card_type", String(32)),
         Column("created", DateTime, nullable=False),
         Column("modified", DateTime, nullable=False)
     )
@@ -60,7 +62,7 @@ def create_cards(registry: registry):
         Card,
         cards_table,
         properties={
-            "deck": relationship(Deck, back_populates="cards")
+            "_deck": relationship(Deck, back_populates="_cards")
         }
     )
 
@@ -107,13 +109,13 @@ def create_cached_card(registry: registry):
     registry.map_imperatively(
         CachedCard,
         cached_card_table,
-        # properties={
-        #     "sf_cache": relationship(back_populates="cached_cards")
-        # }
+        properties={
+            "sf_cache": relationship(ScryfallCache, back_populates="cached_cards")
+        }
     )
 
-def create_all(metadata: MetaData):
-    mapper_registry = registry(metadata=metadata)
+def create_all(db: SQLAlchemy):
+    mapper_registry = registry(metadata=db.metadata)
     create_users(mapper_registry)
     create_decks(mapper_registry)
     create_cards(mapper_registry)

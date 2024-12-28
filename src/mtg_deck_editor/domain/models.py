@@ -1,80 +1,138 @@
 from uuid import uuid4
 from datetime import datetime, timezone
-from mtg_deck_editor.services.dtos import CardDto
 from werkzeug.security import generate_password_hash, check_password_hash
 
 class User:
-    def __init__(self, name: str, password: str):
+    def __init__(self):
+        self.uuid: str = ""
+        self.name: str = ""
+        self.hash: str = ""
+        self.created: datetime = datetime.now(timezone.utc)
+        self.modified: datetime = self.created
+        self.accessed: datetime = self.created
+        self._decks: list[Deck] = []
+
+    def __repr__(self):
+        return f'<User {self.name!r}>'
+    
+    @property
+    def decks(self):
+        return self._decks
+    
+    def add_deck(self, 
+                 name: str, 
+                 description: str = "") -> "Deck":
+        deck = Deck()
+        deck._user = self
+        deck.user_uuid = self.uuid
+        deck.uuid = str(uuid4())     
+        deck.name = name
+        deck.description = description
+
+        self._decks.append(deck)
+        return deck
+    
+    def validate_password(self, password: str) -> bool:
+        if password and self.hash:
+            return check_password_hash(self.hash, password)
+        return False
+
+    @staticmethod
+    def new(name: str, password: str):
         if not name:
             raise ValueError("Name is required.")
         if not password:
             raise ValueError("Password is required.")
 
-        self.uuid: str = str(uuid4())
-        self.name: str = name
-        self.hash: str = generate_password_hash(password)
-        self.created: datetime = datetime.now(timezone.utc)
-        self.modified: datetime = self.created
-        self.decks: list[Deck] = []
-
-    def __repr__(self):
-        return f'<User {self.name!r}>'
-    
-    def validate_password(self,password: str) -> bool:
-        return check_password_hash(self.hash, password)
-    
-    def add_deck(self, deck: "Deck"):
-        self.decks.append(deck)
-
+        user = User()
+        user.uuid = str(uuid4())
+        user.name = name
+        user.hash = generate_password_hash(password)
+        return user
 
 class Deck:
-    def __init__(self, name: str = "Lorem Ipsum"):
-        self.uuid: str = str(uuid4())
+    def __init__(self):
+        self.uuid: str = ""
         self.user_uuid: str = ""
-        self.description: str = ""
-        self.name: str = name
         self.created: datetime = datetime.now(timezone.utc)
         self.modified: datetime = self.created
+        self._name: str = ""
+        self.description: str = ""
 
-        self.user: User = None
-        self.cards: list[Card] = []
+        self._user: User = None
+        self._cards: list[Card] = []
 
     def __repr__(self):
         return f"<Deck {self.name!r}>"
     
-    def set_name(self, name: str):
-        if not name:
+    @property
+    def name(self):
+        return self._name
+    
+    @name.setter
+    def name(self, value):
+        if not value:
             raise ValueError("Name is required.")
-        
-        self.name = name
 
-    def add_card(self, card: "Card"):
-        if card.uuid not in [c.uuid for c in self.cards]:
-            #card.deck = self
+        self._name = value
+
+    @property
+    def cards(self):
+        return (self._cards)
+
+    def add_card(self,
+                 uuid: str, 
+                 name: str, 
+                 set_code: str, 
+                 collector_number: str, 
+                 mana_cost: str, 
+                 mana_value: str, 
+                 type: str,
+                 quantity: int = 1) -> "Card":
+        if uuid not in [c.uuid for c in self._cards]:
+            card = Card()
+            card._deck = self
+            card.deck_uuid = self.uuid
+            card.uuid = uuid
+            card.name = name.title()
+            card.set_code = set_code.upper()
+            card.collector_number = collector_number.upper()
+            card.mana_cost = mana_cost
+            card.mana_value = mana_value
+            card.quantity = quantity
+            card.card_type = type
+
             self.cards.append(card)
+            return card
+        return None
+
+    @property
+    def spells(self) -> list["Card"]:
+        return list([c for c in self._cards if c.card_type != "land" and c.card_type != "creature"])
+    
+    @property
+    def creatures(self) -> list["Card"]:
+        return list([c for c in self._cards if c.card_type == "creature"])
+    
+    @property
+    def lands(self) -> list["Card"]:
+        return list([c for c in self._cards if c.card_type == "land"])
 
 class Card:
-    def __init__(self, uuid: str = "", deck_uuid: str = "", name: str = "None"):
-        self.uuid = uuid
-        self.deck_uuid = deck_uuid
-        self.name = name
-        self.set_code = ""
-        self.collector_number = ""
-        self.mana_cost = ""
-        self.mana_value = ""
-        self.quantity = 0
+    def __init__(self):
+        self.deck_uuid: str = ""
+        self.uuid: str = ""
+        self.name: str = ""
+        self.quantity: int = 1
+        self.set_code: str = ""
+        self.collector_number: str = ""
+        self.mana_cost: str = ""
+        self.mana_value: str = ""
+        self.card_type: str = ""
         self.created: datetime = datetime.now(timezone.utc)
         self.modified: datetime = self.created
 
-        self.deck: Deck = None
+        self._deck: Deck = None
 
     def __repr__(self):
-        return f"<Card {self.uuid!r} ({self.name} - {self.deck_uuid})>"
-    
-    def copy_scryfall_dto(self, dto: CardDto):
-        self.uuid = dto.id
-        self.name = dto.name
-        self.set_code = dto.set.upper()
-        self.collector_number = dto.collector_number
-        self.mana_cost = dto.mana_cost
-        self.mana_value = dto.cmc
+        return f"<Card {self.name} ({self.set_code}) [{self.collector_number}]>"

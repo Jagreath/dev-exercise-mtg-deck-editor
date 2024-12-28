@@ -1,74 +1,74 @@
 from flask import (
     abort,
+    g,
     url_for,
     render_template,
     redirect,
     request,
     Blueprint
 )
-from mtg_deck_editor.infra.repos import make_deck_repo
-from mtg_deck_editor.domain.models import (Deck)
-from mtg_deck_editor.parsing.moxfield import (MoxfieldParser)
+from mtg_deck_editor.domain.models import (Deck, User)
+from mtg_deck_editor.infrastructure.repos import DeckRepository
+from mtg_deck_editor.util.parsing import parse_moxfield_string
 from mtg_deck_editor.services.scryfall import ScryfallApi
+from mtg_deck_editor.views.auth import authorized
 
 bp = Blueprint('decks', __name__)
 
 scryfall_api = ScryfallApi()
-moxfield_parser = MoxfieldParser()
-deck_repo_factory = make_deck_repo
 
 @bp.route("/decks")
 def decks():
-    repo = deck_repo_factory()
+    repo = DeckRepository()
     return render_template("decks/decks.html", decks=repo.get_all())
 
 @bp.route("/decks/new")
+@authorized
 def new_deck():
-    deck = Deck()
-    repo = deck_repo_factory()
-    repo.add(deck)
-    repo.save()
+    current_user: User = g.user
+    deck = current_user.add_deck("Lorem Ipsum")
+    DeckRepository().save()
     return redirect(url_for("decks/decks.edit_deck", uuid=deck.uuid))
 
 @bp.route("/decks/<uuid>")
 def deck(uuid: str):
-    repo = deck_repo_factory()
+    repo = DeckRepository()
     return render_template("decks/view_deck.html", deck=repo.get(uuid))
 
 @bp.route("/decks/<uuid>/edit")
+@authorized
 def edit_deck(uuid: str):
-    repo = deck_repo_factory()
+    repo = DeckRepository()
     return render_template("decks/edit_deck.html", deck=repo.get(uuid))
 
 @bp.post("/decks/<uuid>/save")
+@authorized
 def save_deck(uuid: str):
 
-    repo = deck_repo_factory()
+    repo = DeckRepository()
     deck = repo.get(uuid)
-    deck.set_name(request.form.get("name", ""))
-    deck.description = request.form.get("description","")    
+    deck.name = request.form["name"]
+    deck.description = request.form["description"]
     
     deck.cards.clear()
     for card_string in request.form.get("cards", "").strip().splitlines():
-        card = moxfield_parser.parse_string(card_string)
-        scryfall_card = None
-
-        if card.set_code and card.collector_number:
-            scryfall_card = scryfall_api.get_card(card.set_code, card.collector_number)
-        elif card.name:
-            cards = scryfall_api.search_cards(card.name)
-            if len(cards) > 0:
-                scryfall_card = cards[0]
-        if scryfall_card is not None:
-            card.copy_scryfall_dto(scryfall_card)
-            deck.add_card(card)
+        name, set_code, collector_number, quantity = parse_moxfield_string()
+        card_dto = scryfall_api.get_card(set_code, collector_number)
+        if card_dto is not None:
+            deck.add_card(card_dto.id,
+                          card_dto.name,
+                          card_dto.set,
+                          card_dto.collector_number,
+                          card_dto.mana_cost,
+                          card_dto.cmc,
+                          quantity)
 
     repo.save()
     return redirect(url_for("decks.deck", uuid=uuid))
 
 @bp.route("/decks/<uuid>/delete")
 def delete_deck(uuid: str):
-    repo = deck_repo_factory()
+    repo = DeckRepository()
     deck = repo.get(uuid)
     repo.delete(deck)
     repo.save()

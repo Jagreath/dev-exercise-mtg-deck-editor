@@ -10,6 +10,25 @@
         {% block script %}{% endblock %}
     </head>
     <body>
+        {% block header %}
+        <header class="border-bottom pt-2 pb-2">
+            <div class="container">
+                <div class="d-flex flex-wrap align-items-center justify-content-center">
+                    <h3 class="col align-self-start">Deqs</h3>
+                    <div class="text-end">
+                        <a href="{{ url_for('decks.decks')}}">Decks</a>
+                        {% if g.user %}
+                        <a href="{{ url_for('users.user', username=g.user.name) }}">Account</a>
+                        <a href="{{ url_for('auth.logout', next=request.path) }}">Log Out</a>
+                        {% else %}
+                        <a href="{{ url_for('auth.register', next=request.path) }}">Register</a>
+                        <a href="{{ url_for('auth.login', next=request.path) }}">Log In</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+        {% endblock %}
         {% block content required %}{% endblock %}
     </body>
 </html>

@@ -1,16 +1,17 @@
 {% extends 'shared/base.html' %}
 
-{% block title %}Log In{% endblock %}
+{% block title %}Register{% endblock %}
 
+{% block header %}{% endblock %}
 {% block content %}
-<form action="{{ url_for('accounts.login_post', next=request.args['next']) }}" method="POST">
+<form action="{{ url_for('auth.register_post', next=request.args['next']) }}" method="POST">
     <div class="container pt-5">
         <div class="row">
             <label for="username" class="form-label">Username</label>
             <input type="text" name="username" class="form-control" />
             <label for="password" class="form-label">Password</label>
             <input type="password" name="password" class="form-control" />
-            <button type="submit" class="btn btn-primary">Log In</button>
+            <button type="submit" class="btn btn-primary">Register</button>
         </div>
     </div>
 </form>

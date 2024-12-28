@@ -1,4 +1,5 @@
-from mtg_deck_editor.app import create_app, db
+from mtg_deck_editor import create_app
+from mtg_deck_editor.infrastructure import db
 
 if __name__ == "__main__":
     app = create_app()
