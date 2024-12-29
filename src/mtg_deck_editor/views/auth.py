@@ -10,7 +10,7 @@ from flask import (
     g
 )
 
-from mtg_deck_editor.domain.models import User
+from mtg_deck_editor.domain.models import User, ValidationError
 from mtg_deck_editor.infrastructure.repos import UserRepository
 
 
@@ -60,14 +60,14 @@ def login_post():
 
     user = repo.get_by_name(username)
     if user is None:
-        raise ValueError("Incorrect username.")
+        raise ValidationError("Incorrect username.")
 
     if user.validate_password(password=request.form["password"]):
         session.clear()
         session["user_id"] = user.uuid
         return redirect(request.args.get("next", url_for("home.index")))
     else:
-        raise ValueError("Incorrect password.")
+        raise ValidationError("Incorrect password.")
 
 @bp.get("/logout")
 @authorized
@@ -88,7 +88,7 @@ def register_post():
 
     user = repo.get_by_name(username)
     if user is not None:
-        raise ValueError("Username already exists.")
+        raise ValidationError("Username already exists.")
     
     user = User.new(username, request.form["password"])
     repo.add(user)

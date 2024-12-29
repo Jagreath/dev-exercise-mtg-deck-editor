@@ -7,7 +7,7 @@ from flask import (
     request,
     Blueprint
 )
-from mtg_deck_editor.domain.models import (Deck, User)
+from mtg_deck_editor.domain.models import (Deck, User, ValidationError)
 from mtg_deck_editor.infrastructure.repos import DeckRepository
 from mtg_deck_editor.util.parsing import parse_moxfield_string
 from mtg_deck_editor.services.scryfall import ScryfallApi
@@ -73,3 +73,45 @@ def delete_deck(uuid: str):
     repo.delete(deck)
     repo.save()
     return redirect(url_for("decks.decks"))
+
+@bp.post("/decks/<uuid>/cards/add")
+@authorized
+def add_card(uuid: str):
+    repo = DeckRepository()
+    deck = repo.get(uuid)
+    
+    card = deck.add_card(request.form["name"], 
+                        int(request.form["quantity"]), 
+                        request.form["set_code"],
+                        request.form["collector_number"], 
+                        request.form["mana_cost"],
+                        request.form["mana_value"],
+                        request.form["card_type"])
+    repo.save()
+    return { id : card.id }
+
+@bp.post("/decks/<uuid>/cards/<id>/update")
+@authorized
+def update_card(uuid: str, id: int):
+    repo = DeckRepository()
+    deck = repo.get(uuid)
+
+    card = next(c for c in deck.cards if c.id == id)
+    card.quantity = int(request.form["quantity"])
+    card.set_code = request.form["set_code"]
+    card.collector_number = request.form["collector_number"]
+
+    repo.save()
+    return {}
+
+@bp.post("/decks/<uuid>/cards/<id>/delete")
+@authorized
+def delete_card(uuid: str, id: int):
+    repo = DeckRepository()
+    deck = repo.get(uuid)
+    deck.remove_card(id)
+    repo.save()
+
+    return {}
+
+

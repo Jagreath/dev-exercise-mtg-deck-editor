@@ -9,6 +9,9 @@ def create_app(config_obj=APP_CONFIG) -> Flask:
     maps.create_all(db)
     db.init_app(app)
 
+    from .views.errors import bp as error_bp
+    app.register_blueprint(error_bp)
+
     from .views.home import bp as home_bp
     app.register_blueprint(home_bp)
 
