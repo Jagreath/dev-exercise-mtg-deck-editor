@@ -3,18 +3,16 @@ from uuid import uuid4
 from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 
-class ValidationError(Exception):
-    def __init__(self, *args):
-        super().__init__(*args)
+from mtg_deck_editor.domain.errors import ValidationError
 
 @dataclass
 class User:
-    uuid: str
-    name: str
-    hash: str
-    created: datetime
-    modified: datetime
-    accessed: datetime
+    uuid: str = field(default="")
+    name: str = field(default="")
+    hash: str = field(default="")
+    created: datetime = field(default=None)
+    modified: datetime = field(default=None)
+    accessed: datetime = field(default=None)
     _decks: list["Deck"] = field(default_factory=list)
 
     def __repr__(self):
@@ -28,16 +26,12 @@ class User:
     def add_deck(self, 
                  name: str, 
                  description: str = "") -> "Deck":
-        utcnow = datetime.now(timezone.utc)
         deck = Deck(_user = self, 
                     user_uuid=self.uuid,
                     uuid = str(uuid4()),
                     name = name,
-                    description = description,
-                    created=utcnow,
-                    modified=utcnow)
+                    description = description)
         self._decks.append(deck)
-        self.modified = utcnow
         return deck
     
     def validate_password(self, password: str) -> bool:
@@ -52,24 +46,21 @@ class User:
         if not password:
             raise ValidationError("Password is required.")
 
-        utcnow = datetime.now(timezone.utc)
         hash = generate_password_hash(password)
         return User(uuid=str(uuid4()),
                     name=name,
-                    created=utcnow,
-                    modified=utcnow,
-                    accessed=utcnow,
+                    accessed=datetime.now(timezone.utc),
                     hash=hash)
 
 @dataclass
 class Deck:
-    uuid: str
-    user_uuid: str
-    _name: str
-    _description: str
-    created: datetime
-    modified: datetime
-    _user: User
+    uuid: str = field(default="")
+    user_uuid: str = field(default="")
+    _name: str = field(default="")
+    _description: str = field(default="")
+    created: datetime = field(default=None)
+    modified: datetime = field(default=None)
+    _user: User = field(default=None)
     _cards: list["Card"] = field(default_factory=list)
 
     def __repr__(self):
@@ -85,7 +76,6 @@ class Deck:
             raise ValidationError("Name is required.")
 
         self._name = value.title()
-        self.modified = datetime.now(timezone.utc)
 
     @property
     def description(self) -> str:
@@ -94,7 +84,6 @@ class Deck:
     @description.setter
     def description(self, value: str):
         self._description = value
-        self.modified = datetime.now(timezone.utc)
 
     def add_card(self, 
                  name: str, 
@@ -113,7 +102,6 @@ class Deck:
         if not card_type:
             raise ValidationError("A card type is required.")
         
-        utcnow = datetime.now(timezone.utc)
         card = Card(_deck = self, 
                     deck_uuid=self.uuid,
                     mana_cost=mana_cost,
@@ -123,17 +111,13 @@ class Deck:
         card.quantity = quantity
         card.set_code = set_code
         card.collector_number = collector_number
-        card.created = utcnow
-        card.modified = utcnow
         self._cards.append(card)
-        self.modified = utcnow
         return card
     
     def remove_card(self, id: int):
         card = next((c for c in self._cards if c.id == id), None)
         if card is not None:
             self._cards.remove(card)
-            self.modified = datetime.now(timezone.utc)
 
     @property
     def cards(self) -> list["Card"]:
@@ -154,18 +138,18 @@ class Deck:
 
 @dataclass
 class Card:
-    id: int
-    deck_uuid: str
-    _name: str
-    _quantity: int
-    _set_code: str
-    _collector_number: str
-    mana_cost: str
-    mana_value: str
-    card_type: str
-    created: datetime
-    modified: datetime
-    _deck: Deck
+    id: int = field(default=0)
+    deck_uuid: str = field(default="")
+    _name: str = field(default="")
+    _quantity: int = field(default=0)
+    _set_code: str = field(default="")
+    _collector_number: str = field(default="")
+    mana_cost: str = field(default="")
+    mana_value: str = field(default="")
+    card_type: str = field(default="")
+    created: datetime = field(default=None)
+    modified: datetime = field(default=None)
+    _deck: Deck = field(default=None)
     _tags: list["Tag"] = field(default_factory=list)
 
     def __repr__(self):
@@ -179,7 +163,6 @@ class Card:
     def name(self, value):
         if value:
             self._name = value.title()
-            self.modified = datetime.now(timezone.utc)
 
     @property
     def quantity(self) -> int:
@@ -191,7 +174,6 @@ class Card:
             if value < 1:
                 value = 1
             self._quantity = value
-            self.modified = datetime.now(timezone.utc)
 
     @property
     def set_code(self) -> str:
@@ -201,7 +183,6 @@ class Card:
     def set_code(self, value: str):
         if value and value != self._set_code:
             self._set_code = value.upper()
-            self.modified = datetime.now(timezone.utc)
 
     @property
     def collector_number(self) -> str:
@@ -211,7 +192,6 @@ class Card:
     def collector_number(self, value):
         if value and value != self._collector_number:
             self._collector_number = value.upper()
-            self.modified = datetime.now(timezone.utc)
 
     def add_tag(self, name: str) -> "Tag":
         if tag not in [t.name for t in self._tags]:
@@ -220,7 +200,6 @@ class Card:
                       card_id=self.id,
                       _card=self)
             self._tags.append(tag)
-            self.modified = datetime.now(timezone.utc)
             return tag
         return None
 
@@ -228,7 +207,6 @@ class Card:
         tag = next((t for t in self._tags if t.name == name), None)
         if tag is not None:
             self._tags.remove(tag)
-            self.modified = datetime.now(timezone.utc)
 
     @property
     def tags(self) -> list["Tag"]:

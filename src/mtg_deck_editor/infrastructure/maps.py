@@ -19,7 +19,7 @@ def create_users(registry: registry):
         User,
         users_table,
         properties={
-            "_decks": relationship(Deck, back_populates="user", cascade="all, delete-orphan")
+            "_decks": relationship(Deck, back_populates="_user", cascade="all, delete-orphan")
         }
     )
 

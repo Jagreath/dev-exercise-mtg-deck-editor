@@ -5,8 +5,9 @@ def create_app(config_obj=APP_CONFIG) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(config_obj)
 
-    from mtg_deck_editor.infrastructure import db, maps
+    from mtg_deck_editor.infrastructure import db, maps, events
     maps.create_all(db)
+    events.add_events()
     db.init_app(app)
 
     from .views.errors import bp as error_bp

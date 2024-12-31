@@ -28,7 +28,7 @@ def load_user_from_session():
             g.user.accessed = datetime.now(timezone.utc)
             repo.save()
 
-def authorized(view):
+def authenticated(view):
     @functools.wraps(view)
     def wrapped(**kwargs):
         if g.user is None:
@@ -70,7 +70,7 @@ def login_post():
         raise ValidationError("Incorrect password.")
 
 @bp.get("/logout")
-@authorized
+@authenticated
 def logout():
     session.clear()
     return redirect(request.args.get("next", url_for("home.index")))
